@@ -93,6 +93,20 @@ def login():
         flash('Invalid email address or password.')    
     return render_template('login.html', form=form)
 
+@app.route('/password', methods=['GET', 'POST'])
+def password():
+    if request.method == 'POST':
+        password_len = request.form['pw_len']
+        digits = len(request.form.getlist('digits')) > 0
+        case = len(request.form.getlist('case')) > 0
+        specialChars = len(request.form.getlist('specialChars')) > 0
+
+        # SEND REQUEST TO API HERE 
+        # response = requests.get('http://0.0.0.0:8080/password/Get/{len?}/{digits?}/{case?}/{specialChars?}', headers=headers)
+        generated_password = 'sUJs81Nd01JF3o'
+
+        context = dict(generated_password = generated_password)
+        return render_template('password.html', **context)
 
 @app.route("/forbidden",methods=['GET', 'POST'])
 @login_required
