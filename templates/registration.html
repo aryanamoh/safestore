@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link href="{{ url_for('static', filename='css/style.css')}}" rel="stylesheet" />
+</head>
+<body>
+    <div class="content">
+    <h1>SafeStore</h1>
+    <br>
+    <h2>Create an Account</h2>
+
+
+    <form action="" method="post">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.username(placeholder="username",
+        style='width: 400px;
+        font-weight: bold;
+        padding: 12px 20px ;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box') }}
+        {% for error in form.username.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    <br>
+    <div>
+        {{ form.email(placeholder="email",
+        style='width: 400px;
+        font-weight: bold;
+        padding: 12px 20px ;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box') }}
+        {% for error in form.email.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    <br>
+    <div>
+        {{ form.password1(placeholder="password",
+        style='width: 400px;
+        font-weight: bold;
+        padding: 12px 20px ;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box') }}
+        {% for error in form.password1.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    <br>
+    <div>
+        {{ form.password2(placeholder="confirm password",
+        style='width: 400px;
+        font-weight: bold;
+        padding: 12px 20px ;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box') }}
+        {% for error in form.password2.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    <br>
+    <div class="content">{{ form.submit(style ='background-color: beige;') }}
+    </div>
+    </form>
+
+
+    <p></p>
+    <p><a href="{{ url_for('login') }}">Already have an account?</a></p>
+</div>
+</body>
+</html>

@@ -8,9 +8,26 @@
 </head>
 <body>
 
+    <div>
+  
+        <h1>SafeStore</h1>
+
+        
+
+
+        {% if current_user.is_anonymous %}
+        <a href="{{ url_for('login') }}">Login</a>
+        {% else %}
+        <h3>Welcome {{current_user.username}}!</h3>
+        
+        {% endif %}
+        
+        <br>
+    </div>
+
     <div class="row">
         <div class="column">
-    <h1>SafeStore</h1>
+    
     As you get older, it can be hard to keep track of your passwords and come up with secure and unique ones. 
     <br>
     Use SafeStore for easy password generation and storage!
@@ -66,6 +83,17 @@
         <button type="submit">Submit</button>
     </form>
 
+    <br>
+    <p>
+        <a href="{{ url_for('home') }}">Home</a> 
+
+        {% if current_user.is_anonymous %}
+        <a href="{{ url_for('login') }}">Login</a>
+        {% else %}
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+
+    </p>
 </div>
 
 <div class="column">
