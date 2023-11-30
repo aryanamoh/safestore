@@ -1,3 +1,5 @@
+import requests
+import json
 from flask import Flask, render_template, request, url_for, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user
@@ -97,13 +99,14 @@ def login():
 def password():
     if request.method == 'POST':
         password_len = request.form['pw_len']
-        digits = len(request.form.getlist('digits')) > 0
-        case = len(request.form.getlist('case')) > 0
-        specialChars = len(request.form.getlist('specialChars')) > 0
+        digits = str(len(request.form.getlist('digits')) > 0)
+        case = str(len(request.form.getlist('case')) > 0)
+        specialChars = str(len(request.form.getlist('specialChars')) > 0)
 
         # SEND REQUEST TO API HERE 
-        # response = requests.get('http://0.0.0.0:8080/password/Get/{len?}/{digits?}/{case?}/{specialChars?}', headers=headers)
-        generated_password = 'sUJs81Nd01JF3o'
+        response = requests.get('http://ec2-107-22-87-117.compute-1.amazonaws.com:8080/password/Get' +
+                               '/' + password_len + '/' + digits + '/' + case + '/' + specialChars)
+        generated_password = response.content.decode('ASCII')
 
         context = dict(generated_password = generated_password)
         return render_template('password.html', **context)
