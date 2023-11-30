@@ -41,6 +41,7 @@ class User(UserMixin, db.Model):
   email = db.Column(db.String(150), unique = True, index = True)
   password_hash = db.Column(db.String(150))
   joined_at = db.Column(db.DateTime(), default = datetime.utcnow, index = True)
+#   jwt = db.Column(db.String)
 
   def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -74,6 +75,16 @@ def home():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
+
+        # Request new JWT
+        data = {
+            'username': form.username.data,
+            # TODO: update this once we have the form working
+            'paying': 'True' 
+        }
+        user_jwt = requests.post('http://ec2-107-22-87-117.compute-1.amazonaws.com:8080/', data)
+
+        # Save to the database
         user = User(username =form.username.data, email = form.email.data)
         user.set_password(form.password1.data)
         db.session.add(user)
