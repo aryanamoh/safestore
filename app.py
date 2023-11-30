@@ -63,7 +63,7 @@ def load_user(user_id):
 
 @app.route('/index')
 @app.route('/home')
-@login_required
+# @login_required
 def home():
     return render_template(
         "index.html"
