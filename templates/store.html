@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client</title>
+    <link href="{{ url_for('static', filename='css/style.css')}}" rel="stylesheet" />
+</head>
+<body>
+
+    <div>
+  
+        <h1>SafeStore</h1>
+
+        
+
+
+        {% if current_user.is_anonymous %}
+        <a href="{{ url_for('login') }}">Login</a>
+        {% else %}
+        <h3>Welcome {{current_user.username}}!</h3>
+        
+        {% endif %}
+        
+        <br>
+    </div>
+
+    <div class="row">
+        <div class="column">
+    
+    As you get older, it can be hard to keep track of your passwords and come up with secure and unique ones. 
+    <br>
+    Use SafeStore for easy password generation and storage!
+
+
+    <h2>Generate Password</h2>
+    Specify your password type:
+
+    <br>
+    <br>
+    
+    <form method="POST" action="/password">
+
+        Length:
+        <input type="number"
+            min="1"
+            max="100"
+            step="1"
+            value="12"
+            id = "pw_len"
+            name = "pw_len"
+        />
+
+        <br>
+        <br>
+
+        <input type="checkbox" id="digits" name="digits" value="True">
+            <label for="digits"> Include digits</label><br>
+        <input type="checkbox" id="case" name="case" value="case">
+            <label for="case"> Include uppercase characters</label><br>
+        <input type="checkbox" id="specialChars" name="specialChars" value="specialChars">
+            <label for="specialChars"> Include special characters</label><br><br>
+        <button type="submit">Submit</button>
+      </form>
+
+    <br>
+
+    <h2>Store Password</h2>
+    Save passwords for all your apps
+    <br>
+    <br>
+    <form action="/storefile">
+        <input type="text" name="appName" id="appName" placeholder="Enter app name" />
+        <input type="text" name="password" id="password" placeholder="Enter password" />
+        <button type="submit">Submit</button>
+    </form>
+
+    <br>
+
+    <h2>Get Password</h2>
+    Retrieve all your stored passwords
+    <br>
+    <br>
+    <form action="/storefile">
+        <input type="text" name="appName" id="appName" placeholder="Enter app name" />
+        <button type="submit">Submit</button>
+    </form>
+
+    <br>
+    <p>
+        <a href="{{ url_for('home') }}">Home</a> 
+
+        {% if current_user.is_anonymous %}
+        <a href="{{ url_for('login') }}">Login</a>
+        {% else %}
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+
+    </p>
+</div>
+
+<div class="column">
+    <div class="gmaimg">
+<img src="{{ url_for('static', filename="grandma.jpeg")}}" alt="Cartoon family"/>
+    </div>
+</div>
+</div>
+
+</body>
+</html>

@@ -131,6 +131,21 @@ def password():
         context = dict(generated_password = generated_password)
         return render_template('password.html', **context)
 
+@app.route('/store', methods=['GET', 'POST'])
+def password():
+    if request.method == 'POST':
+        appName = request.form['appName']
+        password = request.form['password']
+
+        # POST FILE TO STORAGE HERE 
+        # response = requests.get('http://ec2-107-22-87-117.compute-1.amazonaws.com:8080/password/Get')
+        # generated_password = response.content.decode('ASCII')
+
+        store_success = True
+
+        context = dict(store_success = store_success, appName=appName)
+        return render_template('store.html', **context)
+
 @app.route("/forbidden",methods=['GET', 'POST'])
 @login_required
 def protected():
