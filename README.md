@@ -22,3 +22,10 @@ The client, with help of the service, helps elderly individuals stay safer onlin
 Run the file app.py
 
 For Mac users: in terminal, run `$python3 app.py`
+
+
+## Credits
+
+Style sheet adapted from [Glitch](https://glitch.com)
+
+Login and registration logic adapted from Esther Vaati's <em>["A Detailed Guide to User Registration, Login, and Logout in Flask"](https://betterprogramming.pub/a-detailed-guide-to-user-registration-login-and-logout-in-flask-e86535665c07) <em>
