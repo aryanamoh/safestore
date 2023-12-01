@@ -34,6 +34,8 @@ app.config['SECRET_KEY'] = SECRET_KEY
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+# Backend API connection
+HOST = 'http://34.23.37.33:31568/'
 
 class User(UserMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -41,7 +43,11 @@ class User(UserMixin, db.Model):
   email = db.Column(db.String(150), unique = True, index = True)
   password_hash = db.Column(db.String(150))
   joined_at = db.Column(db.DateTime(), default = datetime.utcnow, index = True)
-#   jwt = db.Column(db.String)
+  paying = db.Column(db.Integer)
+  token = db.Column(db.String)
+
+  def set_jwt(self, jwt):
+      self.token = jwt
 
   def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -75,17 +81,16 @@ def home():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-
+        user = User(username =form.username.data, email = form.email.data, paying = form.paying.data)
+  
         # Request new JWT
         data = {
             'username': form.username.data,
-            # TODO: update this once we have the form working
-            'paying': 'True' 
+            'paying': form.paying.data
         }
         user_jwt = requests.post('http://ec2-107-22-87-117.compute-1.amazonaws.com:8080/', data)
-
-        # Save to the database
-        user = User(username =form.username.data, email = form.email.data)
+        user.set_jwt(user_jwt)
+       
         user.set_password(form.password1.data)
         db.session.add(user)
         db.session.commit()
@@ -116,7 +121,7 @@ def password():
         specialChars = str(len(request.form.getlist('specialChars')) > 0)
 
         # SEND REQUEST TO API HERE 
-        response = requests.get('http://ec2-107-22-87-117.compute-1.amazonaws.com:8080/password/Get' +
+        response = requests.get(HOST + '/password/Get' +
                                '/' + password_len + '/' + digits + '/' + case + '/' + specialChars)
         generated_password = response.content.decode('ASCII')
 
@@ -132,13 +137,35 @@ def protected():
 def upload():
    return render_template('bugchecker.html')
 	
+@app.route('/viruscheck', methods = ['GET', 'POST'])
+def viruscheck():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return redirect(url_for('upload'))
+        f = request.files['file']
+        if f.filename == '':
+            return redirect(url_for('upload'))
+        
+        data = {
+            'contents': f.read(),
+            'userID': current_user.username,
+            'fileName': f.filename
+        }
+
+        response = requests.post(HOST + '/virusChecker/CheckFile/', data)
+
+        res_text = response.content.decode('ASCII')
+        res_text = res_text if res_text else 'API is offline. Please try again later!'
+        context = {'res_text': res_text, 'filename': f.filename}
+
+        return render_template('scannedfile.html', **context)
+   
 @app.route('/uploader', methods = ['GET', 'POST'])
 def upload_file():
    if request.method == 'POST':
       f = request.files['file']
       f.save(secure_filename(f.filename))
       return 'file uploaded successfully'
-  
 
 @app.route("/logout")
 # @login_required
