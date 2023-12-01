@@ -17,6 +17,9 @@
 
         {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
+        <br>
+        <br>
+        
         {% else %}
         <h3>Welcome {{current_user.username}}!</h3>
         
@@ -90,11 +93,24 @@
 
     <h2>File Store and Bug Checker</h2>
     <p>For premium members only.</p>
-    <form action="/upload">
+
+    {% if current_user.is_anonymous %}
+
+        <p style="color: grey;"> <i> Upgrade to premium to access. <i> </p>
+
+    {% elif current_user.paying == 0 %}
+    
+        <p style="color: grey;"> <i> Upgrade to premium to access. </i> </p>
+
+    {% else %}
+
+    <form action="/premium">
         <button type="submit">Let's Go!</button>
     </form>
 
+    {% endif %}
 
+    <br>
 
 
 
