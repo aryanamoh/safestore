@@ -82,8 +82,15 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(username =form.username.data, email = form.email.data, paying = form.paying.data)
-        
-        # user.set_jwt(user_jwt)
+  
+        # Request new JWT
+        data = {
+            'username': form.username.data,
+            'paying': form.paying.data
+        }
+        user_jwt = requests.post('http://ec2-107-22-87-117.compute-1.amazonaws.com:8080/', data)
+        user.set_jwt(user_jwt)
+       
         user.set_password(form.password1.data)
         db.session.add(user)
         db.session.commit()
