@@ -131,15 +131,29 @@ def password():
         context = dict(generated_password = generated_password)
         return render_template('password.html', **context)
 
-@app.route('/store', methods=['GET', 'POST'])
-def password():
+@app.route('/storepassword', methods=['GET', 'POST'])
+@login_required
+def store_password():
     if request.method == 'POST':
         appName = request.form['appName']
         password = request.form['password']
+        filename = current_user.username + '_' + appName + '.txt'
+
+        b = bytearray()
+        b.extend(password)
+
+        headers = {
+            'Authorization': 'Bearer  ' #+ current_user.jwt,
+        }
+        data = {
+            'contents': b,
+            'userID': current_user.username,
+            'fileName': filename
+        }
 
         # POST FILE TO STORAGE HERE 
-        # response = requests.get('http://ec2-107-22-87-117.compute-1.amazonaws.com:8080/password/Get')
-        # generated_password = response.content.decode('ASCII')
+        response = requests.get(HOST + '/storage/Submit/', headers, data)
+        generated_password = response.content.decode('ASCII')
 
         store_success = True
 
