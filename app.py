@@ -34,6 +34,8 @@ app.config['SECRET_KEY'] = SECRET_KEY
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+# Backend API connection
+HOST = 'http://34.23.37.33:31568/'
 
 class User(UserMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -105,7 +107,7 @@ def password():
         specialChars = str(len(request.form.getlist('specialChars')) > 0)
 
         # SEND REQUEST TO API HERE 
-        response = requests.get('http://ec2-107-22-87-117.compute-1.amazonaws.com:8080/password/Get' +
+        response = requests.get(HOST + '/password/Get' +
                                '/' + password_len + '/' + digits + '/' + case + '/' + specialChars)
         generated_password = response.content.decode('ASCII')
 
@@ -121,13 +123,35 @@ def protected():
 def upload():
    return render_template('bugchecker.html')
 	
+@app.route('/viruscheck', methods = ['GET', 'POST'])
+def viruscheck():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return redirect(url_for('upload'))
+        f = request.files['file']
+        if f.filename == '':
+            return redirect(url_for('upload'))
+        
+        data = {
+            'contents': f.read(),
+            'userID': current_user.username,
+            'fileName': f.filename
+        }
+
+        response = requests.post(HOST + '/virusChecker/CheckFile/', data)
+
+        res_text = response.content.decode('ASCII')
+        res_text = res_text if res_text else 'API is offline. Please try again later!'
+        context = {'res_text': res_text, 'filename': f.filename}
+
+        return render_template('scannedfile.html', **context)
+   
 @app.route('/uploader', methods = ['GET', 'POST'])
 def upload_file():
    if request.method == 'POST':
       f = request.files['file']
       f.save(secure_filename(f.filename))
       return 'file uploaded successfully'
-  
 
 @app.route("/logout")
 # @login_required
