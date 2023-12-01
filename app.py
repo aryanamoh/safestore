@@ -8,6 +8,7 @@ import os
 from waitress import serve
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from forms import RegistrationForm, LoginForm
 
 # from bytebandits import get_pw
@@ -67,7 +68,7 @@ def load_user(user_id):
 
 @app.route('/index')
 @app.route('/home')
-@login_required
+# @login_required
 def home():
     return render_template(
         "index.html"
@@ -123,6 +124,17 @@ def password():
 def protected():
     return redirect(url_for('forbidden.html'))
 
+@app.route('/upload')
+def upload():
+   return render_template('bugchecker.html')
+	
+@app.route('/uploader', methods = ['GET', 'POST'])
+def upload_file():
+   if request.method == 'POST':
+      f = request.files['file']
+      f.save(secure_filename(f.filename))
+      return 'file uploaded successfully'
+  
 
 @app.route("/logout")
 # @login_required

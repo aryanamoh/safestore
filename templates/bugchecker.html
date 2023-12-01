@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Checker</title>
+    <link href="{{ url_for('static', filename='css/style.css')}}" rel="stylesheet" />
+</head>
+<body>
+
+    <h1>SafeStore Premium</h1>
+
+    <h2>Malware Checker</h2>
+    <p>Our malware checker will... [ADD DESCRIPTION]</p>
+
+    <br>
+    <form action = "http://localhost:8000/uploader" method = "POST" 
+         enctype = "multipart/form-data">
+         <input type = "file" name = "file" />
+         <input type = "submit"/>
+    </form>
+
+    <h2>File Store</h2>
+    <p>Safely store and encrypt your files with us.</p>
+
+    <br>
+    <form action = "http://localhost:8000/uploader" method = "POST"  
+         enctype = "multipart/form-data">
+         <input type = "file" name = "file" />
+         <input type = "submit"/>
+    </form>
+
+    <h2>File Retrieve</h2>
+    <p>Securely retrieve your files.</p>
+
+    <form action="">
+        <input type="text" name="fileName" id="fileName" placeholder="Enter file name" />
+        <button type="submit">Submit</button>
+    </form>
+
+   </body>
+
+</body>
+</html>
