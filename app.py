@@ -40,6 +40,11 @@ class User(UserMixin, db.Model):
   email = db.Column(db.String(150), unique = True, index = True)
   password_hash = db.Column(db.String(150))
   joined_at = db.Column(db.DateTime(), default = datetime.utcnow, index = True)
+  paying = db.Column(db.Integer)
+  token = db.Column(db.String)
+
+  def set_jwt(self, jwt):
+      self.token = jwt
 
   def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -73,7 +78,9 @@ def home():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username =form.username.data, email = form.email.data)
+        user = User(username =form.username.data, email = form.email.data, paying = form.paying.data)
+        
+        # user.set_jwt(user_jwt)
         user.set_password(form.password1.data)
         db.session.add(user)
         db.session.commit()

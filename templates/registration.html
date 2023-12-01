@@ -72,6 +72,22 @@
         {% endfor %}
     </div>
     <br>
+    <div>
+        {{ form.paying(placeholder="select membership status",
+        style='width: 400px;
+        font-weight: bold;
+        padding: 12px 20px ;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box') }}
+        {% for error in form.paying.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+
+    </div>
+    <br>
+
     <div class="content">{{ form.submit(style ='background-color: beige;') }}
     </div>
     </form>
