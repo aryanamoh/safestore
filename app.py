@@ -19,8 +19,6 @@ from forms import RegistrationForm, LoginForm
 
 app = Flask(__name__)
 
-host = 'http://ec2-107-22-87-117.compute-1.amazonaws.com:8080/'
-
 # initialize database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydb.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -37,7 +35,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 # Backend API connection
-HOST = 'http://34.23.37.33:31568/'
+HOST = 'http://ec2-107-22-87-117.compute-1.amazonaws.com:8080'
 
 class User(UserMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -90,7 +88,10 @@ def register():
             'username': form.username.data,
             'paying': form.paying.data
         }
-        user_jwt = str(requests.post(host, data))
+        response = requests.post(HOST + '/jwt/', data)
+        print('\n\n', response)
+        user_jwt = response.content.decode('ASCII')
+        print(user_jwt)
         user.set_jwt(user_jwt)
        
         user.set_password(form.password1.data)
@@ -148,13 +149,18 @@ def viruscheck():
         if f.filename == '':
             return redirect(url_for('upload'))
         
+        print(type(f.read()))
+        print(type(list(f.read())))
+
         data = {
-            'contents': f.read(),
+            'contents': list(f.read()), 
             'userID': current_user.username,
             'fileName': f.filename
         }
 
         response = requests.post(HOST + '/virusChecker/CheckFile/', data)
+        
+        print(response.status_code)
 
         res_text = response.content.decode('ASCII')
         res_text = res_text if res_text else 'API is offline. Please try again later!'
