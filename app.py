@@ -105,6 +105,9 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
 
+    if current_user.is_authenticated:
+         return redirect(url_for('home'))
+
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email = form.email.data).first()
@@ -132,10 +135,12 @@ def password():
         return render_template('password.html', **context)
 
 @app.route('/storepassword', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def store_password():
+    if not current_user.is_authenticated:
+         return redirect(url_for('login'))
     if request.method == 'POST':
-        appName = request.form['appName']
+        appName = request.form['appName'].lower
         password = request.form['password']
         filename = current_user.username + '_' + appName + '.txt'
 
@@ -156,13 +161,17 @@ def store_password():
         store_success = response.content.decode('ASCII')
 
         context = dict(store_success = store_success, appName=appName)
-        return render_template('store.html', **context)
+        return render_template('storepassword.html', **context)
+    
+    return redirect(url_for('forbidden'))
 
 @app.route('/retrievepassword', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def retrievepassword():
+    if not current_user.is_authenticated:
+         return redirect(url_for('login'))
     if request.method == 'POST':
-        appName = request.form['appName']
+        appName = request.form['appName'].lower()
         filename = current_user.username + '_' + appName + '.txt'
 
         headers = {
@@ -172,10 +181,14 @@ def retrievepassword():
         # GET FILE FROM STORAGE HERE 
         response = requests.get(HOST + '/storage/Get/' + filename + '/'
                                 + current_user.username + '/', headers)
-        retrieved_password = response.content.decode('ASCII')
+        
+        retrieved_password = 'Sorry, you don\'t have a password stored for ' + appName.capitalize() + '.'
+        if response.status_code == 200:
+            retrieved_password = response.content.decode('ASCII')
 
         context = dict(retrieved_password = retrieved_password, appName=appName)
-        return render_template('store.html', **context)
+        return render_template('getpassword.html', **context)
+    return redirect(url_for('forbidden'))
 
 @app.route("/forbidden",methods=['GET', 'POST'])
 @login_required
