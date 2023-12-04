@@ -152,12 +152,29 @@ def store_password():
         }
 
         # POST FILE TO STORAGE HERE 
-        response = requests.get(HOST + '/storage/Submit/', headers, data)
-        generated_password = response.content.decode('ASCII')
-
-        store_success = True
+        response = requests.post(HOST + '/storage/Submit/', headers, data)
+        store_success = response.content.decode('ASCII')
 
         context = dict(store_success = store_success, appName=appName)
+        return render_template('store.html', **context)
+
+@app.route('/retrievepassword', methods=['GET', 'POST'])
+@login_required
+def retrievepassword():
+    if request.method == 'POST':
+        appName = request.form['appName']
+        filename = current_user.username + '_' + appName + '.txt'
+
+        headers = {
+            'Authorization': 'Bearer  ' #+ current_user.jwt,
+        }
+
+        # GET FILE FROM STORAGE HERE 
+        response = requests.get(HOST + '/storage/Get/' + filename + '/'
+                                + current_user.username + '/', headers)
+        retrieved_password = response.content.decode('ASCII')
+
+        context = dict(retrieved_password = retrieved_password, appName=appName)
         return render_template('store.html', **context)
 
 @app.route("/forbidden",methods=['GET', 'POST'])
