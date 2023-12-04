@@ -36,6 +36,7 @@ login_manager.init_app(app)
 
 # Backend API connection
 HOST = 'http://ec2-107-22-87-117.compute-1.amazonaws.com:8080'
+GEN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqd3QtYXVkaWVuY2UiLCJpc3MiOiJodHRwczovL2p3dC1wcm92aWRlci1kb21haW4vIiwiY2xpZW50SWQiOiJzYW1wbGUiLCJ1c2VybmFtZSI6InRheWxvcnN3aWZ0IiwicGF5aW5nIjp0cnVlLCJleHAiOjE3MDE3ODAwODF9.FExF3UF9Kx40CZcXExiMiVBzadw1zw07rb-hIURKBJw'
 
 class User(UserMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -84,14 +85,19 @@ def register():
         user = User(username =form.username.data, email = form.email.data, paying = form.paying.data)
   
         # Request new JWT
+        headers = {
+            'Authorization': 'Bearer ' + GEN_TOKEN,
+            'Content-Type': 'application/json',
+        }
+
+        paying = str(bool(int(form.paying.data))).lower()
+
         data = {
             'username': form.username.data,
-            'paying': form.paying.data
+            'paying': paying,
         }
-        response = requests.post(HOST + '/jwt/', data)
-        print('\n\n', response)
+        response = requests.post(HOST + '/jwt/', headers=headers, json=data)
         user_jwt = response.content.decode('ASCII')
-        print(user_jwt)
         user.set_jwt(user_jwt)
        
         user.set_password(form.password1.data)
@@ -148,7 +154,7 @@ def store_password():
         b.extend(password)
 
         headers = {
-            'Authorization': 'Bearer  ' #+ current_user.jwt,
+            'Authorization': 'Bearer  ' + current_user.jwt,
         }
         data = {
             'contents': b,
@@ -175,7 +181,7 @@ def retrievepassword():
         filename = current_user.username + '_' + appName + '.txt'
 
         headers = {
-            'Authorization': 'Bearer  ' #+ current_user.jwt,
+            'Authorization': 'Bearer  ' + current_user.token
         }
 
         # GET FILE FROM STORAGE HERE 
