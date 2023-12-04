@@ -184,7 +184,7 @@ def retrievepassword():
         
         retrieved_password = 'Sorry, you don\'t have a password stored for ' + appName.capitalize() + '.'
         if response.status_code == 200:
-            retrieved_password = response.content.decode('ASCII')
+            retrieved_password = response.content.decode('ASCII') # provider ??
 
         context = dict(retrieved_password = retrieved_password, appName=appName)
         return render_template('getpassword.html', **context)
