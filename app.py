@@ -10,6 +10,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from forms import RegistrationForm, LoginForm
+import base64
 
 # from bytebandits import get_pw
 
@@ -146,24 +147,22 @@ def store_password():
     if not current_user.is_authenticated:
          return redirect(url_for('login'))
     if request.method == 'POST':
-        appName = request.form['appName'].lower
-        password = request.form['password']
+        appName = request.form['appName'].lower()
+        password = request.form['password'].encode('utf-8')
+        bytepassword = base64.b64encode(password).decode('utf-8')
         filename = current_user.username + '_' + appName + '.txt'
 
-        b = bytearray()
-        b.extend(password)
-
         headers = {
-            'Authorization': 'Bearer  ' + current_user.jwt,
+            'Authorization': 'Bearer ' + current_user.token,
         }
         data = {
-            'contents': b,
+            'contents': bytepassword,
             'userID': current_user.username,
             'fileName': filename
         }
 
         # POST FILE TO STORAGE HERE 
-        response = requests.post(HOST + '/storage/Submit/', headers, data)
+        response = requests.post(HOST + '/storage/Submit/', headers=headers, json=data)
         store_success = response.content.decode('ASCII')
 
         context = dict(store_success = store_success, appName=appName)
@@ -186,7 +185,7 @@ def retrievepassword():
 
         # GET FILE FROM STORAGE HERE 
         response = requests.get(HOST + '/storage/Get/' + filename + '/'
-                                + current_user.username + '/', headers)
+                                + current_user.username + '/', headers=headers)
         
         retrieved_password = 'Sorry, you don\'t have a password stored for ' + appName.capitalize() + '.'
         if response.status_code == 200:
