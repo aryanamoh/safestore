@@ -156,7 +156,6 @@ def store_password():
         bytepassword = base64.b64encode(password).decode('utf-8')
         filename = current_user.username + '_' + appName + '.txt'
 
-        print(filename, current_user.username)
         headers = {
             'Authorization': 'Bearer ' + session['jwt'],
         }
@@ -184,18 +183,15 @@ def retrievepassword():
         appName = request.form['appName'].lower()
         filename = current_user.username + '_' + appName + '.txt'
 
-        print(filename, current_user.username)
-
         headers = {
             'Authorization': 'Bearer  ' + session['jwt'],
         }
 
         # GET FILE FROM STORAGE HERE 
         response = requests.get(HOST + '/storage/Get/' + filename + '/'
-                                + current_user.username + '/', headers=headers)
-        
-        found = False
+                                + current_user.username, headers=headers)
 
+        found = False
         retrieved_password = ''
         if response.status_code == 200:
             retrieved_password = response.content.decode('ASCII')
