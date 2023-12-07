@@ -1,6 +1,6 @@
 import requests
 import json
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user
 from flask_migrate import Migrate
@@ -37,7 +37,7 @@ login_manager.init_app(app)
 
 # Backend API connection
 HOST = 'http://ec2-107-22-87-117.compute-1.amazonaws.com:8080'
-GEN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqd3QtYXVkaWVuY2UiLCJpc3MiOiJodHRwczovL2p3dC1wcm92aWRlci1kb21haW4vIiwiY2xpZW50SWQiOiJzYW1wbGUiLCJ1c2VybmFtZSI6InRheWxvcnN3aWZ0IiwicGF5aW5nIjp0cnVlLCJleHAiOjE3MDE3ODAwODF9.FExF3UF9Kx40CZcXExiMiVBzadw1zw07rb-hIURKBJw'
+GEN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqd3QtYXVkaWVuY2UiLCJpc3MiOiJodHRwczovL2p3dC1wcm92aWRlci1kb21haW4vIiwiY2xpZW50SWQiOiJzYW1wbGUiLCJ1c2VybmFtZSI6InByb2Z4dSIsInBheWluZyI6dHJ1ZSwiZXhwIjoxNzAyMDIyNTM3fQ.WLr6D9EvlmUfqlUFchb7g7G33KqToEB6KnM5sxr3iu4'
 
 class User(UserMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -50,6 +50,9 @@ class User(UserMixin, db.Model):
 
   def set_jwt(self, jwt):
       self.token = jwt
+    
+  def get_jwt(self):
+      return self.token
 
   def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -100,6 +103,7 @@ def register():
         response = requests.post(HOST + '/jwt/', headers=headers, json=data)
         user_jwt = response.content.decode('ASCII')
         user.set_jwt(user_jwt)
+        print('new jwt' + user_jwt)
        
         user.set_password(form.password1.data)
         db.session.add(user)
@@ -121,6 +125,7 @@ def login():
         if user is not None and user.check_password(form.password.data):
             login_user(user)
             next = request.args.get("next")
+            session['jwt'] = user.get_jwt()
             return redirect(next or url_for('home'))
         flash('Invalid email address or password.')    
     return render_template('login.html', form=form)
@@ -152,8 +157,10 @@ def store_password():
         bytepassword = base64.b64encode(password).decode('utf-8')
         filename = current_user.username + '_' + appName + '.txt'
 
+        print('store:' + session['jwt'])
+
         headers = {
-            'Authorization': 'Bearer ' + current_user.token,
+            'Authorization': 'Bearer ' + session['jwt'],
         }
         data = {
             'contents': bytepassword,
@@ -180,7 +187,7 @@ def retrievepassword():
         filename = current_user.username + '_' + appName + '.txt'
 
         headers = {
-            'Authorization': 'Bearer  ' + current_user.token
+            'Authorization': 'Bearer  ' + session['jwt'],
         }
 
         # GET FILE FROM STORAGE HERE 
@@ -209,20 +216,19 @@ def viruscheck():
     if request.method == 'POST':
         if 'file' not in request.files:
             return redirect(url_for('upload'))
-        f = request.files['file']
+        f = request.files['file'].encode('utf-8')
         if f.filename == '':
             return redirect(url_for('upload'))
         
-        print(type(f.read()))
-        print(type(list(f.read())))
+        bytefile = base64.b64encode(f).decode('utf-8')
 
         data = {
-            'contents': list(f.read()), 
+            'contents': bytefile, 
             'userID': current_user.username,
             'fileName': f.filename
         }
 
-        response = requests.post(HOST + '/virusChecker/CheckFile/', data)
+        response = requests.post(HOST + '/virusChecker/CheckFile/', json=data)
         
         print(response.status_code)
 
