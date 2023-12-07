@@ -103,7 +103,6 @@ def register():
         response = requests.post(HOST + '/jwt/', headers=headers, json=data)
         user_jwt = response.content.decode('ASCII')
         user.set_jwt(user_jwt)
-        print('new jwt' + user_jwt)
        
         user.set_password(form.password1.data)
         db.session.add(user)
@@ -157,8 +156,7 @@ def store_password():
         bytepassword = base64.b64encode(password).decode('utf-8')
         filename = current_user.username + '_' + appName + '.txt'
 
-        print('store:' + session['jwt'])
-
+        print(filename, current_user.username)
         headers = {
             'Authorization': 'Bearer ' + session['jwt'],
         }
@@ -186,6 +184,8 @@ def retrievepassword():
         appName = request.form['appName'].lower()
         filename = current_user.username + '_' + appName + '.txt'
 
+        print(filename, current_user.username)
+
         headers = {
             'Authorization': 'Bearer  ' + session['jwt'],
         }
@@ -194,11 +194,14 @@ def retrievepassword():
         response = requests.get(HOST + '/storage/Get/' + filename + '/'
                                 + current_user.username + '/', headers=headers)
         
-        retrieved_password = 'Sorry, you don\'t have a password stored for ' + appName.capitalize() + '.'
-        if response.status_code == 200:
-            retrieved_password = response.content.decode('ASCII') # provider ??
+        found = False
 
-        context = dict(retrieved_password = retrieved_password, appName=appName)
+        retrieved_password = ''
+        if response.status_code == 200:
+            retrieved_password = response.content.decode('ASCII')
+            found = True
+
+        context = dict(retrieved_password = retrieved_password, appName=appName, found=found)
         return render_template('getpassword.html', **context)
     return redirect(url_for('forbidden'))
 
@@ -216,11 +219,11 @@ def viruscheck():
     if request.method == 'POST':
         if 'file' not in request.files:
             return redirect(url_for('upload'))
-        f = request.files['file'].encode('utf-8')
+        f = request.files['file']
         if f.filename == '':
             return redirect(url_for('upload'))
         
-        bytefile = base64.b64encode(f).decode('utf-8')
+        bytefile = base64.b64encode(f.read()).decode('utf-8')
 
         data = {
             'contents': bytefile, 
@@ -238,6 +241,33 @@ def viruscheck():
 
         return render_template('scannedfile.html', **context)
    
+@app.route('/storefile', methods = ['GET', 'POST'])
+def storefile():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return redirect(url_for('upload'))
+        f = request.files['file']
+        if f.filename == '':
+            return redirect(url_for('upload'))
+        
+        bytefile = base64.b64encode(f.read()).decode('utf-8')
+
+        headers = {
+            'Authorization': 'Bearer ' + session['jwt'],
+        }
+        data = {
+            'contents': bytefile,
+            'userID': current_user.username,
+            'fileName': f.filename,
+        }
+
+        # POST FILE TO STORAGE HERE 
+        response = requests.post(HOST + '/storage/Submit/', headers=headers, json=data)
+        store_success = response.content.decode('ASCII')
+
+        context = dict(store_success = store_success, filename=f.filename)
+        return render_template('storefile.html', **context)
+
 @app.route('/uploader', methods = ['GET', 'POST'])
 def upload_file():
    if request.method == 'POST':
