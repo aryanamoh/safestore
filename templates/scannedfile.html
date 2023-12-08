@@ -14,7 +14,11 @@
     <h2>Malware Checker</h2>
     <h3>We received your file!</h3>
     <p>For the file: {{filename}}</p>
-    <p><i>{{res_text}}</i></p>
+    {% if is_virus %}
+        <p style="color:red; font-size: xx-large; font-weight: bolder;">{{res_text}}</p>
+    {% else %}
+        <p><i>{{res_text}}</i></p>
+    {% endif %}
 
     <h3>Scan Another File</h3>
     <p>Select a file to upload, and we will check if the file is safe or contains a hidden virus</p>
@@ -22,7 +26,7 @@
     <br>
     <form action = "/viruscheck" method = "POST" 
          enctype = "multipart/form-data">
-         <input accept=".txt" type = "file" name = "file" />
+         <input type = "file" name = "file" />
          <input type="submit" name="virus_check" value="Check File"/>
     </form>
 
@@ -31,7 +35,7 @@
 
     <br>
     <form action = "/storefile" method = "POST" enctype = "multipart/form-data">
-         <input accept=".txt" type = "file" name = "file" />
+         <input type = "file" name = "file" />
          <input type="submit" name="file_store" value="Store File"/>
     </form>
 

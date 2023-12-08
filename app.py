@@ -278,7 +278,8 @@ def viruscheck():
 
         res_text = response.content.decode('ASCII')
         res_text = res_text if res_text else 'API is offline. Please try again later!'
-        context = {'res_text': res_text, 'filename': f.filename}
+        is_virus = "delete immediately" in res_text
+        context = {'res_text': res_text, 'filename': f.filename, 'is_virus': is_virus}
 
         return render_template('scannedfile.html', **context)
    
@@ -308,6 +309,7 @@ def storefile():
 
         context = dict(store_success = store_success, filename=f.filename)
         return render_template('storefile.html', **context)
+    return redirect(url_for('forbidden'))
 
 @app.route('/uploader', methods = ['GET', 'POST'])
 def upload_file():

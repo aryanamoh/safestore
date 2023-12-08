@@ -17,7 +17,7 @@
     <br>
     <form action = "/viruscheck" method = "POST" 
          enctype = "multipart/form-data">
-         <input accept=".txt" type = "file" name = "file" />
+         <input type = "file" name = "file" />
          <input type="submit" name="virus_check" value="Check File"/>
     </form>
 
@@ -26,7 +26,7 @@
 
     <br>
     <form action = "/storefile" method = "POST" enctype = "multipart/form-data">
-         <input accept=".txt" type = "file" name = "file" />
+         <input type = "file" name = "file" />
          <input type="submit" name="file_store" value="Store File"/>
     </form>
 
@@ -41,7 +41,7 @@
           </form>
     {% else %}
         <h3>Whoops!</h3>
-        <p>You don't have a stored file with that filename!</p>
+        <p>You don't have a stored file with the filename "{{filename}}"!</p>
         <p>Please note that filenames are case-sensitive. Please also <b>include</b> the file extension (e.g. holiday_card.txt).</p>
     {% endif %}
     <h3>Retrieve Another File</h3>
