@@ -34,7 +34,7 @@ login_manager.init_app(app)
 # Backend API connection
 HOST = 'http://ec2-107-22-87-117.compute-1.amazonaws.com:8080'
 # HOST ='http://localhost:8080'
-GEN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqd3QtYXVkaWVuY2UiLCJpc3MiOiJodHRwczovL2p3dC1wcm92aWRlci1kb21haW4vIiwiY2xpZW50SWQiOiJzYW1wbGUiLCJ1c2VybmFtZSI6InByb2Z4dSIsInBheWluZyI6dHJ1ZSwiZXhwIjoxNzAyMDIyNTM3fQ.WLr6D9EvlmUfqlUFchb7g7G33KqToEB6KnM5sxr3iu4'
+GEN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqd3QtYXVkaWVuY2UiLCJpc3MiOiJodHRwczovL2p3dC1wcm92aWRlci1kb21haW4vIiwiY2xpZW50SWQiOiJzYW1wbGUiLCJ1c2VybmFtZSI6ImJpZ19hZG1pbiIsInBheWluZyI6dHJ1ZSwiZXhwIjoxNzAyMTMwODUzfQ.OxSZD7EmDmEZ7Z9Lyt6y9zbAXuPChpFK95PoLwA34KI'
 
 # User Login management
 
