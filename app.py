@@ -1,6 +1,6 @@
 import requests
 import json
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect, session, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user
 from flask_migrate import Migrate
@@ -10,6 +10,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from forms import RegistrationForm, LoginForm
+import base64
 
 # from bytebandits import get_pw
 
@@ -35,7 +36,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 # Backend API connection
-HOST = 'http://ec2-107-22-87-117.compute-1.amazonaws.com:8080'
+# HOST = 'http://ec2-107-22-87-117.compute-1.amazonaws.com:8080'
+HOST = 'http://localhost:8080'
+GEN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqd3QtYXVkaWVuY2UiLCJpc3MiOiJodHRwczovL2p3dC1wcm92aWRlci1kb21haW4vIiwiY2xpZW50SWQiOiJzYW1wbGUiLCJ1c2VybmFtZSI6InByb2Z4dSIsInBheWluZyI6dHJ1ZSwiZXhwIjoxNzAyMDIyNTM3fQ.WLr6D9EvlmUfqlUFchb7g7G33KqToEB6KnM5sxr3iu4'
 
 class User(UserMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -48,6 +51,9 @@ class User(UserMixin, db.Model):
 
   def set_jwt(self, jwt):
       self.token = jwt
+    
+  def get_jwt(self):
+      return self.token
 
   def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -84,14 +90,19 @@ def register():
         user = User(username =form.username.data, email = form.email.data, paying = form.paying.data)
   
         # Request new JWT
+        headers = {
+            'Authorization': 'Bearer ' + GEN_TOKEN,
+            'Content-Type': 'application/json',
+        }
+
+        paying = str(bool(int(form.paying.data))).lower()
+
         data = {
             'username': form.username.data,
-            'paying': form.paying.data
+            'paying': paying,
         }
-        response = requests.post(HOST + '/jwt/', data)
-        print('\n\n', response)
+        response = requests.post(HOST + '/jwt/', headers=headers, json=data)
         user_jwt = response.content.decode('ASCII')
-        print(user_jwt)
         user.set_jwt(user_jwt)
        
         user.set_password(form.password1.data)
@@ -105,12 +116,16 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
 
+    if current_user.is_authenticated:
+         return redirect(url_for('home'))
+
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email = form.email.data).first()
         if user is not None and user.check_password(form.password.data):
             login_user(user)
             next = request.args.get("next")
+            session['jwt'] = user.get_jwt()
             return redirect(next or url_for('home'))
         flash('Invalid email address or password.')    
     return render_template('login.html', form=form)
@@ -130,6 +145,107 @@ def password():
 
         context = dict(generated_password = generated_password)
         return render_template('password.html', **context)
+    return redirect(url_for('forbidden'))
+
+@app.route('/storepassword', methods=['GET', 'POST'])
+# @login_required
+def store_password():
+    if not current_user.is_authenticated:
+         return redirect(url_for('login'))
+    if request.method == 'POST':
+        appName = request.form['appName'].lower()
+        password = request.form['password'].encode('utf-8')
+        bytepassword = base64.b64encode(password).decode('utf-8')
+        filename = current_user.username + '_' + appName + '.txt'
+
+        headers = {
+            'Authorization': 'Bearer ' + session['jwt'],
+        }
+        data = {
+            'contents': bytepassword,
+            'userID': current_user.username,
+            'fileName': filename
+        }
+
+        # POST FILE TO STORAGE HERE 
+        response = requests.post(HOST + '/storage/Submit/', headers=headers, json=data)
+        store_success = response.content.decode('ASCII')
+
+        context = dict(store_success = store_success, appName=appName)
+        return render_template('storepassword.html', **context)
+    
+    return redirect(url_for('forbidden'))
+
+@app.route('/retrievepassword', methods=['GET', 'POST'])
+# @login_required
+def retrievepassword():
+    if not current_user.is_authenticated:
+         return redirect(url_for('login'))
+    if request.method == 'POST':
+        appName = request.form['appName'].lower()
+        filename = current_user.username + '_' + appName + '.txt'
+
+        headers = {
+            'Authorization': 'Bearer  ' + session['jwt'],
+        }
+
+        # GET FILE FROM STORAGE HERE 
+        response = requests.get(HOST + '/storage/Get/' + filename + '/'
+                                + current_user.username, headers=headers)
+
+        found = False
+        retrieved_password = ''
+        if response.status_code == 200:
+            retrieved_password = response.content.decode('ASCII')
+            found = True
+
+        context = dict(retrieved_password = retrieved_password, appName=appName, found=found)
+        return render_template('getpassword.html', **context)
+    return redirect(url_for('forbidden'))
+
+@app.route('/download', methods=['GET', 'POST'])
+def download():
+    if request.method == 'POST':
+        file_object = request.form['retrieved_file']
+        byte_data = eval(file_object)
+        filename = request.form['filename']
+
+        with open(filename, 'wb') as file:
+            file.write(byte_data)
+        
+        return send_file(
+            filename,
+            mimetype='application/octet-stream',
+            as_attachment=True,
+            download_name=filename)
+    
+    return redirect(url_for('forbidden'))
+
+@app.route('/retrievefile', methods=['GET', 'POST'])
+# @login_required
+def retrievefile():
+    if not current_user.is_authenticated:
+         return redirect(url_for('login'))
+    if request.method == 'POST':
+        filename = request.form['fileName']
+
+        headers = {
+            'Authorization': 'Bearer  ' + session['jwt'],
+        }
+
+        # GET FILE FROM STORAGE HERE 
+        response = requests.get(HOST + '/storage/Get/' + filename + '/'
+                                + current_user.username, headers=headers)
+
+        found = False
+        retrieved_file = ''
+        if response.status_code == 200:
+            retrieved_file = response.content
+            found = True
+
+        context = dict(retrieved_file=retrieved_file, filename=filename, found=found)
+        return render_template('getfile.html', **context)
+    return redirect(url_for('forbidden'))
 
 @app.route("/forbidden",methods=['GET', 'POST'])
 @login_required
@@ -149,25 +265,52 @@ def viruscheck():
         if f.filename == '':
             return redirect(url_for('upload'))
         
-        print(type(f.read()))
-        print(type(list(f.read())))
+        file = f.read()
+        bytefile = base64.b64encode(file).decode('utf-8')
 
         data = {
-            'contents': list(f.read()), 
+            'contents': bytefile, 
             'userID': current_user.username,
             'fileName': f.filename
         }
 
-        response = requests.post(HOST + '/virusChecker/CheckFile/', data)
-        
-        print(response.status_code)
+        response = requests.post(HOST + '/virusChecker/CheckFile/', json=data)
 
         res_text = response.content.decode('ASCII')
         res_text = res_text if res_text else 'API is offline. Please try again later!'
-        context = {'res_text': res_text, 'filename': f.filename}
+        is_virus = "delete immediately" in res_text
+        context = {'res_text': res_text, 'filename': f.filename, 'is_virus': is_virus}
 
         return render_template('scannedfile.html', **context)
    
+@app.route('/storefile', methods = ['GET', 'POST'])
+def storefile():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return redirect(url_for('upload'))
+        f = request.files['file']
+        if f.filename == '':
+            return redirect(url_for('upload'))
+        
+        bytefile = base64.b64encode(f.read()).decode('utf-8')
+
+        headers = {
+            'Authorization': 'Bearer ' + session['jwt'],
+        }
+        data = {
+            'contents': bytefile,
+            'userID': current_user.username,
+            'fileName': f.filename,
+        }
+
+        # POST FILE TO STORAGE HERE 
+        response = requests.post(HOST + '/storage/Submit/', headers=headers, json=data)
+        store_success = response.content.decode('ASCII')
+
+        context = dict(store_success = store_success, filename=f.filename)
+        return render_template('storefile.html', **context)
+    return redirect(url_for('forbidden'))
+
 @app.route('/uploader', methods = ['GET', 'POST'])
 def upload_file():
    if request.method == 'POST':

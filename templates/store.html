@@ -3,25 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafeStore</title>
-    <link href="{{ url_for('static', filename='css/style.css')}}" rel="stylesheet">
+    <title>Client</title>
+    <link href="{{ url_for('static', filename='css/style.css')}}" rel="stylesheet" />
 </head>
 <body>
 
     <div>
+  
         <h1>SafeStore</h1>
+
+        
+
+
         {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
-        <br>
-        <br>
         {% else %}
         <h3>Welcome {{current_user.username}}!</h3>
+        
         {% endif %}
+        
         <br>
     </div>
 
     <div class="row">
         <div class="column">
+    
     As you get older, it can be hard to keep track of your passwords and come up with secure and unique ones. 
     <br>
     Use SafeStore for easy password generation and storage!
@@ -32,6 +38,7 @@
 
     <br>
     <br>
+    
     <form method="POST" action="/password">
 
         Length:
@@ -40,9 +47,9 @@
             max="100"
             step="1"
             value="12"
-            id="pw_len"
-            name="pw_len"
-        >
+            id = "pw_len"
+            name = "pw_len"
+        />
 
         <br>
         <br>
@@ -62,8 +69,8 @@
     Save passwords for all your apps
     <br>
     <br>
-    <form method="POST" action="/storepassword">
-        <input type="text" name="appName" id="storepass" placeholder="Enter app name" />
+    <form action="/storefile">
+        <input type="text" name="appName" id="appName" placeholder="Enter app name" />
         <input type="text" name="password" id="password" placeholder="Enter password" />
         <button type="submit">Submit</button>
     </form>
@@ -74,37 +81,14 @@
     Retrieve all your stored passwords
     <br>
     <br>
-    <form method="POST" action="/retrievepassword">
-        <input type="text" name="appName" id="getpass" placeholder="Enter app name" />
+    <form action="/storefile">
+        <input type="text" name="appName" placeholder="Enter app name" />
         <button type="submit">Submit</button>
     </form>
 
     <br>
-
-    <h2>File Store and Bug Checker</h2>
-    <p>For premium members only.</p>
-
-    {% if current_user.is_anonymous %}
-
-        <p style="color: grey;"> <i> Upgrade to premium to access. </i> </p>
-
-    {% elif current_user.paying == 0 %}
-        <p style="color: grey;"> <i> Upgrade to premium to access. </i> </p>
-
-    {% else %}
-
-    <form action="/premium">
-        <button type="submit">Let's Go!</button>
-    </form>
-
-    {% endif %}
-
-    <br>
-
-
-
     <p>
-        <a href="{{ url_for('home') }}">Home</a>
+        <a href="{{ url_for('home') }}">Home</a> 
 
         {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
@@ -117,7 +101,7 @@
 
 <div class="column">
     <div class="gmaimg">
-<img src="{{ url_for('static', filename='grandma.jpeg') }}" alt="Cartoon family"/>
+<img src="{{ url_for('static', filename='grandma.jpeg')}}" alt="Cartoon family"/>
     </div>
 </div>
 </div>
