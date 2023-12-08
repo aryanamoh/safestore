@@ -1,6 +1,6 @@
 import requests
 import json
-from flask import Flask, render_template, request, url_for, flash, redirect, session
+from flask import Flask, render_template, request, url_for, flash, redirect, session, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user
 from flask_migrate import Migrate
@@ -36,7 +36,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 # Backend API connection
-HOST = 'http://ec2-107-22-87-117.compute-1.amazonaws.com:8080'
+# HOST = 'http://ec2-107-22-87-117.compute-1.amazonaws.com:8080'
+HOST = 'http://localhost:8080'
 GEN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqd3QtYXVkaWVuY2UiLCJpc3MiOiJodHRwczovL2p3dC1wcm92aWRlci1kb21haW4vIiwiY2xpZW50SWQiOiJzYW1wbGUiLCJ1c2VybmFtZSI6InByb2Z4dSIsInBheWluZyI6dHJ1ZSwiZXhwIjoxNzAyMDIyNTM3fQ.WLr6D9EvlmUfqlUFchb7g7G33KqToEB6KnM5sxr3iu4'
 
 class User(UserMixin, db.Model):
@@ -144,6 +145,7 @@ def password():
 
         context = dict(generated_password = generated_password)
         return render_template('password.html', **context)
+    return redirect(url_for('forbidden'))
 
 @app.route('/storepassword', methods=['GET', 'POST'])
 # @login_required
@@ -201,6 +203,50 @@ def retrievepassword():
         return render_template('getpassword.html', **context)
     return redirect(url_for('forbidden'))
 
+@app.route('/download', methods=['GET', 'POST'])
+def download():
+    if request.method == 'POST':
+        file_object = request.form['retrieved_file']
+        byte_data = eval(file_object)
+        filename = request.form['filename']
+
+        with open(filename, 'wb') as file:
+            file.write(byte_data)
+        
+        return send_file(
+            filename,
+            mimetype='application/octet-stream',
+            as_attachment=True,
+            download_name=filename)
+    
+    return redirect(url_for('forbidden'))
+
+@app.route('/retrievefile', methods=['GET', 'POST'])
+# @login_required
+def retrievefile():
+    if not current_user.is_authenticated:
+         return redirect(url_for('login'))
+    if request.method == 'POST':
+        filename = request.form['fileName']
+
+        headers = {
+            'Authorization': 'Bearer  ' + session['jwt'],
+        }
+
+        # GET FILE FROM STORAGE HERE 
+        response = requests.get(HOST + '/storage/Get/' + filename + '/'
+                                + current_user.username, headers=headers)
+
+        found = False
+        retrieved_file = ''
+        if response.status_code == 200:
+            retrieved_file = response.content
+            found = True
+
+        context = dict(retrieved_file=retrieved_file, filename=filename, found=found)
+        return render_template('getfile.html', **context)
+    return redirect(url_for('forbidden'))
+
 @app.route("/forbidden",methods=['GET', 'POST'])
 @login_required
 def protected():
@@ -219,7 +265,8 @@ def viruscheck():
         if f.filename == '':
             return redirect(url_for('upload'))
         
-        bytefile = base64.b64encode(f.read()).decode('utf-8')
+        file = f.read()
+        bytefile = base64.b64encode(file).decode('utf-8')
 
         data = {
             'contents': bytefile, 
@@ -228,8 +275,6 @@ def viruscheck():
         }
 
         response = requests.post(HOST + '/virusChecker/CheckFile/', json=data)
-        
-        print(response.status_code)
 
         res_text = response.content.decode('ASCII')
         res_text = res_text if res_text else 'API is offline. Please try again later!'

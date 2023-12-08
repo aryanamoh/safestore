@@ -12,11 +12,6 @@
     <h1>SafeStore Premium</h1>
 
     <h2>Malware Checker</h2>
-    <h3>We received your file!</h3>
-    <p>For the file: {{filename}}</p>
-    <p><i>{{res_text}}</i></p>
-
-    <h3>Scan Another File</h3>
     <p>Select a file to upload, and we will check if the file is safe or contains a hidden virus</p>
 
     <br>
@@ -36,6 +31,20 @@
     </form>
 
     <h2>File Retrieve</h2>
+    <h3>File Retrieval Results</h3>
+    {% if found %}
+        <h3>Success! Click here to download {{filename}}</h3>
+        <form method="POST" action="/download">
+            <input type="hidden" id="retrieved_file" name="retrieved_file" value="{{retrieved_file}}">
+            <input type="hidden" id="filename" name="filename" value="{{filename}}">
+            <button type="submit">Download File</button>
+          </form>
+    {% else %}
+        <h3>Whoops!</h3>
+        <p>You don't have a stored file with that filename!</p>
+        <p>Please note that filenames are case-sensitive. Please also <b>include</b> the file extension (e.g. holiday_card.txt).</p>
+    {% endif %}
+    <h3>Retrieve Another File</h3>
     <p>Securely retrieve your files.</p>
 
     <form action="/retrievefile" method = "POST">
