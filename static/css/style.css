@@ -95,7 +95,7 @@
   
   body {
     font-family: HK Grotesk;
-    background-color: lavender;
+    background-color: rgb(232, 172, 132);
   }
   
   /* Page structure */
@@ -114,7 +114,7 @@
   
   /* Very light scaling for our illustration */
   .title {
-    color: #2800FF;
+    color: #820303;
     font-family: HK Grotesk;
     font-style: normal;
     font-weight: bold;
@@ -160,7 +160,7 @@
   
   /* Subheading */
   h2 {
-    color: #2800FF;
+    color: #820303;
   }
 
   .gmaimg {
